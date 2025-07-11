@@ -61,4 +61,88 @@ else
 fi
 
 echo
+echo "🛠️  Installing Development Tools..."
+
+# Check if git is already installed (should be from zsh install, but double-check)
+if command -v git >/dev/null 2>&1; then
+    echo "✅ Git is already installed"
+else
+    echo "📦 Installing Git..."
+    sudo apt update
+    sudo apt install -y git
+fi
+
+# Check if ripgrep is already installed
+if command -v rg >/dev/null 2>&1; then
+    echo "✅ Ripgrep is already installed"
+else
+    echo "🔍 Installing Ripgrep..."
+    sudo apt update
+    sudo apt install -y ripgrep
+fi
+
+# Check if fd-find is already installed
+if command -v fd >/dev/null 2>&1 || command -v fdfind >/dev/null 2>&1; then
+    echo "✅ fd-find is already installed"
+else
+    echo "📁 Installing fd-find..."
+    sudo apt update
+    sudo apt install -y fd-find
+    # Create symlink if fdfind exists but fd doesn't
+    if command -v fdfind >/dev/null 2>&1 && ! command -v fd >/dev/null 2>&1; then
+        sudo ln -sf $(which fdfind) /usr/local/bin/fd
+    fi
+fi
+
+# Check if fzf is already installed
+if command -v fzf >/dev/null 2>&1; then
+    echo "✅ fzf is already installed"
+else
+    echo "🔎 Installing fzf..."
+    sudo apt update
+    sudo apt install -y fzf
+fi
+
+# Check if lazygit is already installed
+if command -v lazygit >/dev/null 2>&1; then
+    echo "✅ Lazygit is already installed"
+else
+    echo "🚀 Installing Lazygit..."
+    # Get latest release version
+    LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+    curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+    tar xf lazygit.tar.gz lazygit
+    sudo install lazygit /usr/local/bin
+    rm lazygit lazygit.tar.gz
+fi
+
+echo
+echo "⚙️  Setting up Neovim configuration..."
+
+# Check if Neovim config already exists
+if [[ -d "$HOME/.config/nvim" ]]; then
+    echo "⚠️  Neovim config directory already exists. Backing up to ~/.config/nvim.backup"
+    mv "$HOME/.config/nvim" "$HOME/.config/nvim.backup.$(date +%Y%m%d_%H%M%S)"
+fi
+
+# Clone the dotfiles repository
+echo "📥 Cloning Neovim configuration from dotfiles..."
+git clone https://github.com/sinneDvdb/dotfiles.git "$HOME/dotfiles-temp"
+
+# Copy the Neovim configuration
+if [[ -d "$HOME/dotfiles-temp/.config/nvim" ]]; then
+    echo "📁 Setting up Neovim configuration..."
+    mkdir -p "$HOME/.config"
+    cp -r "$HOME/dotfiles-temp/.config/nvim" "$HOME/.config/"
+    echo "✅ Neovim configuration installed successfully!"
+else
+    echo "⚠️  Neovim config not found in the expected location in dotfiles repo"
+    echo "📂 Available directories in dotfiles:"
+    ls -la "$HOME/dotfiles-temp/"
+fi
+
+# Clean up temporary clone
+echo "🧹 Cleaning up temporary files..."
+rm -rf "$HOME/dotfiles-temp"
+
 echo "🎉 Ubuntu Environment Setup Complete!"
