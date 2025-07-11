@@ -2,6 +2,9 @@
 
 set -e  # Exit on any error
 
+echo "🚀 Starting Ubuntu Environment Setup..."
+echo
+
 # Check if Zsh is already installed and configured
 if command -v zsh >/dev/null 2>&1 && [[ "$SHELL" == "$(which zsh)" ]]; then
     echo "✅ Zsh is already installed and set as default shell"
@@ -25,6 +28,7 @@ fi
 
 echo "✅ Zsh and Oh My Zsh setup completed!"
 echo "🔁 Please log out and log back in to start using Zsh (if not already done)."
+echo
 
 # Check if Neovim is already installed
 if command -v nvim >/dev/null 2>&1; then
@@ -37,20 +41,17 @@ else
 
     # Check if Neovim repository already exists
     if [[ -d "$HOME/neovim" ]]; then
-        echo "� Neovim repository already exists, updating..."
+        echo "📁 Neovim repository already exists, updating..."
         cd ~/neovim
         git pull
     else
-        echo "�📥 Cloning Neovim repository..."
+        echo "📥 Cloning Neovim repository..."
         git clone https://github.com/neovim/neovim.git ~/neovim
         cd ~/neovim
     fi
 
     echo "🔨 Building Neovim (Release mode)..."
     make CMAKE_BUILD_TYPE=Release
-
-    echo "🧪 Running Neovim tests..."
-    make test
 
     echo "📦 Installing Neovim to /usr/local..."
     sudo make install
@@ -59,3 +60,5 @@ else
     nvim --version
 fi
 
+echo
+echo "🎉 Ubuntu Environment Setup Complete!"
