@@ -33,8 +33,18 @@ echo "🔁 Please log out and log back in to start using Zsh."
 echo
 
 # Install Neovim
-echo "📝 Installing Neovim..."
-sudo apt install -y neovim
+echo "📝 Installing Neovim (latest stable)..."
+# Remove old neovim if installed
+sudo apt remove -y neovim >/dev/null 2>&1 || true
+
+# Download and install latest Neovim AppImage
+echo "📥 Downloading Neovim AppImage..."
+curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+chmod u+x nvim.appimage
+sudo mv nvim.appimage /usr/local/bin/nvim
+
+# Create symlinks for common commands
+sudo ln -sf /usr/local/bin/nvim /usr/local/bin/vim 2>/dev/null || true
 
 echo "✅ Neovim installed successfully!"
 nvim --version
@@ -167,7 +177,7 @@ echo "🎉 Debian Environment Setup Complete!"
 echo
 echo "📋 Summary of installed tools:"
 echo "   • Zsh with Oh My Zsh"
-echo "   • Neovim (from package manager)"
+echo "   • Neovim (latest stable via AppImage)"
 echo "   • Git"
 echo "   • .NET SDK 8.0"
 echo "   • Ripgrep (rg)"
