@@ -47,31 +47,59 @@ sudo apt remove -y neovim >/dev/null 2>&1 || true
 NEED_UPDATE=true
 if [[ -f /usr/local/bin/nvim ]]; then
     echo "🔍 Checking for Neovim updates..."
-    CURRENT_VERSION=$(/usr/local/bin/nvim --version | head -n1 | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+')
-    LATEST_VERSION=$(curl -s https://api.github.com/repos/neovim/neovim/releases/latest | grep -oP '"tag_name": "v\K[^"]*')
-    
-    if [[ "$CURRENT_VERSION" == "$LATEST_VERSION" ]]; then
-        echo "✅ Neovim is already up to date (v$CURRENT_VERSION)"
-        NEED_UPDATE=false
+    if /usr/local/bin/nvim --version >/dev/null 2>&1; then
+        CURRENT_VERSION=$(/usr/local/bin/nvim --version | head -n1 | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+')
+        LATEST_VERSION=$(curl -s https://api.github.com/repos/neovim/neovim/releases/latest | grep -oP '"tag_name": "v\K[^"]*')
+        
+        if [[ "$CURRENT_VERSION" == "$LATEST_VERSION" ]]; then
+            echo "✅ Neovim is already up to date (v$CURRENT_VERSION)"
+            NEED_UPDATE=false
+        else
+            echo "📦 Update available: v$CURRENT_VERSION → v$LATEST_VERSION"
+        fi
     else
-        echo "📦 Update available: v$CURRENT_VERSION → v$LATEST_VERSION"
+        echo "⚠️  Current Neovim installation is broken, reinstalling..."
     fi
 fi
 
 if [[ "$NEED_UPDATE" == "true" ]]; then
+    # Install dependencies for AppImage
+    echo "📦 Installing AppImage dependencies..."
+    sudo apt install -y fuse libfuse2
+    
     # Download and install latest Neovim AppImage
     echo "📥 Downloading Neovim AppImage..."
     curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
     chmod u+x nvim.appimage
-    sudo mv nvim.appimage /usr/local/bin/nvim
+    
+    # Test the AppImage before installing
+    if ./nvim.appimage --version >/dev/null 2>&1; then
+        sudo mv nvim.appimage /usr/local/bin/nvim
+        echo "✅ Neovim AppImage installed successfully!"
+    else
+        echo "⚠️  AppImage failed, falling back to tarball installation..."
+        rm -f nvim.appimage
+        
+        # Fallback: Download and extract tarball
+        NVIM_VERSION=$(curl -s https://api.github.com/repos/neovim/neovim/releases/latest | grep -oP '"tag_name": "v\K[^"]*')
+        curl -LO "https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz"
+        sudo tar -C /opt -xzf nvim-linux64.tar.gz
+        sudo ln -sf /opt/nvim-linux64/bin/nvim /usr/local/bin/nvim
+        rm nvim-linux64.tar.gz
+        echo "✅ Neovim tarball installed successfully!"
+    fi
     
     # Create symlinks for common commands
     sudo ln -sf /usr/local/bin/nvim /usr/local/bin/vim 2>/dev/null || true
-    
-    echo "✅ Neovim installed/updated successfully!"
 fi
 
-nvim --version
+echo "🔍 Verifying Neovim installation..."
+if nvim --version >/dev/null 2>&1; then
+    nvim --version
+else
+    echo "❌ Neovim installation failed!"
+    exit 1
+fi
 
 echo
 echo "🛠️  Installing Development Tools..."
