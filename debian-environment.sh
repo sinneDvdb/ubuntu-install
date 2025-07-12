@@ -39,7 +39,7 @@ echo "🔁 Please log out and log back in to start using Zsh."
 echo
 
 # Install Neovim
-echo "📝 Installing Neovim (latest stable)..."
+echo "📝 Installing Neovim (latest stable from source)..."
 # Remove old neovim package if installed
 sudo apt remove -y neovim >/dev/null 2>&1 || true
 
@@ -63,48 +63,35 @@ if [[ -f /usr/local/bin/nvim ]]; then
 fi
 
 if [[ "$NEED_UPDATE" == "true" ]]; then
-    # Install dependencies for AppImage
-    echo "📦 Installing AppImage dependencies..."
-    sudo apt install -y fuse libfuse2
+    # Install build dependencies
+    echo "� Installing build dependencies..."
+    sudo apt install -y ninja-build gettext cmake unzip curl build-essential
     
-    # Download and install latest Neovim AppImage
-    echo "📥 Downloading Neovim AppImage..."
-    if curl -L -o nvim.appimage https://github.com/neovim/neovim/releases/latest/download/nvim.appimage; then
-        chmod u+x nvim.appimage
-        
-        # Test the AppImage before installing
-        if ./nvim.appimage --version >/dev/null 2>&1; then
-            sudo mv nvim.appimage /usr/local/bin/nvim
-            echo "✅ Neovim AppImage installed successfully!"
-        else
-            echo "⚠️  AppImage failed, falling back to tarball installation..."
-            rm -f nvim.appimage
-            
-            # Fallback: Download and extract tarball
-            echo "📥 Downloading Neovim tarball..."
-            if curl -L -o nvim-linux64.tar.gz https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz; then
-                if tar -tzf nvim-linux64.tar.gz >/dev/null 2>&1; then
-                    sudo tar -C /opt -xzf nvim-linux64.tar.gz
-                    sudo ln -sf /opt/nvim-linux64/bin/nvim /usr/local/bin/nvim
-                    rm nvim-linux64.tar.gz
-                    echo "✅ Neovim tarball installed successfully!"
-                else
-                    echo "❌ Downloaded tarball is corrupted"
-                    rm -f nvim-linux64.tar.gz
-                    exit 1
-                fi
-            else
-                echo "❌ Failed to download Neovim tarball"
-                exit 1
-            fi
-        fi
-    else
-        echo "❌ Failed to download Neovim AppImage"
-        exit 1
-    fi
+    # Remove existing build directory if it exists
+    rm -rf ~/neovim
     
-    # Create symlinks for common commands
-    sudo ln -sf /usr/local/bin/nvim /usr/local/bin/vim 2>/dev/null || true
+    # Clone Neovim repository
+    echo "📥 Cloning Neovim repository..."
+    git clone https://github.com/neovim/neovim.git ~/neovim
+    cd ~/neovim
+    
+    # Checkout latest stable release
+    echo "🏷️  Checking out latest stable release..."
+    git checkout stable
+    
+    # Build Neovim
+    echo "� Building Neovim (this may take a few minutes)..."
+    make CMAKE_BUILD_TYPE=RelWithDebInfo
+    
+    # Install Neovim
+    echo "📦 Installing Neovim to /usr/local..."
+    sudo make install
+    
+    # Clean up build directory
+    cd ~
+    rm -rf ~/neovim
+    
+    echo "✅ Neovim built and installed successfully!"
 fi
 
 echo "🔍 Verifying Neovim installation..."
@@ -243,7 +230,7 @@ echo "🎉 Debian Environment Setup Complete!"
 echo
 echo "📋 Summary of installed tools:"
 echo "   • Zsh with Oh My Zsh"
-echo "   • Neovim (latest stable via AppImage)"
+echo "   • Neovim (latest stable built from source)"
 echo "   • Git"
 echo "   • .NET SDK 8.0"
 echo "   • Ripgrep (rg)"
