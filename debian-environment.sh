@@ -34,19 +34,37 @@ echo
 
 # Install Neovim
 echo "📝 Installing Neovim (latest stable)..."
-# Remove old neovim if installed
+# Remove old neovim package if installed
 sudo apt remove -y neovim >/dev/null 2>&1 || true
 
-# Download and install latest Neovim AppImage
-echo "📥 Downloading Neovim AppImage..."
-curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
-chmod u+x nvim.appimage
-sudo mv nvim.appimage /usr/local/bin/nvim
+# Check if we need to update Neovim
+NEED_UPDATE=true
+if [[ -f /usr/local/bin/nvim ]]; then
+    echo "🔍 Checking for Neovim updates..."
+    CURRENT_VERSION=$(/usr/local/bin/nvim --version | head -n1 | grep -oP 'v\K[0-9]+\.[0-9]+\.[0-9]+')
+    LATEST_VERSION=$(curl -s https://api.github.com/repos/neovim/neovim/releases/latest | grep -oP '"tag_name": "v\K[^"]*')
+    
+    if [[ "$CURRENT_VERSION" == "$LATEST_VERSION" ]]; then
+        echo "✅ Neovim is already up to date (v$CURRENT_VERSION)"
+        NEED_UPDATE=false
+    else
+        echo "📦 Update available: v$CURRENT_VERSION → v$LATEST_VERSION"
+    fi
+fi
 
-# Create symlinks for common commands
-sudo ln -sf /usr/local/bin/nvim /usr/local/bin/vim 2>/dev/null || true
+if [[ "$NEED_UPDATE" == "true" ]]; then
+    # Download and install latest Neovim AppImage
+    echo "📥 Downloading Neovim AppImage..."
+    curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+    chmod u+x nvim.appimage
+    sudo mv nvim.appimage /usr/local/bin/nvim
+    
+    # Create symlinks for common commands
+    sudo ln -sf /usr/local/bin/nvim /usr/local/bin/vim 2>/dev/null || true
+    
+    echo "✅ Neovim installed/updated successfully!"
+fi
 
-echo "✅ Neovim installed successfully!"
 nvim --version
 
 echo
