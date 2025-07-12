@@ -24,9 +24,15 @@ else
 fi
 
 # Install Oh My Zsh
-echo "✨ Installing Oh My Zsh..."
-export RUNZSH=no  # Prevent auto-starting Zsh after install
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+if [[ -d "$HOME/.oh-my-zsh" ]]; then
+    echo "✅ Oh My Zsh is already installed"
+else
+    echo "✨ Installing Oh My Zsh..."
+    export RUNZSH=no  # Prevent auto-starting Zsh after install
+    # Unset ZSH variable to avoid conflicts
+    unset ZSH
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+fi
 
 echo "✅ Zsh and Oh My Zsh setup completed!"
 echo "🔁 Please log out and log back in to start using Zsh."

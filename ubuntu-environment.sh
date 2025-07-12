@@ -23,6 +23,8 @@ if [[ -d "$HOME/.oh-my-zsh" ]]; then
 else
     echo "✨ Installing Oh My Zsh..."
     export RUNZSH=no  # Prevent auto-starting Zsh after install
+    # Unset ZSH variable to avoid conflicts
+    unset ZSH
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 fi
 
