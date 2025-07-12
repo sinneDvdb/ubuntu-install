@@ -14,7 +14,11 @@ echo "🔧 Installing Zsh..."
 sudo apt install -y zsh curl git
 
 echo "👤 Changing default shell to Zsh for user: $USER"
-chsh -s "$(which zsh)"
+# Use sudo chsh to avoid password prompt issues when running via curl
+sudo chsh -s "$(which zsh)" "$USER" || {
+    echo "⚠️  Failed to change shell automatically. You can change it manually later with:"
+    echo "   chsh -s \$(which zsh)"
+}
 
 # Install Oh My Zsh
 echo "✨ Installing Oh My Zsh..."
@@ -169,5 +173,6 @@ echo "   • fzf"
 echo "   • Lazygit"
 echo "   • Custom Neovim configuration"
 echo
-echo "🔄 Note: You may need to log out and log back in for Zsh to become your default shell"
+echo "🔄 Important: Please log out and log back in to start using Zsh as your default shell"
+echo "   If Zsh is not your default shell, run: chsh -s \$(which zsh)"
 echo "🚀 You can now run 'nvim' to start Neovim with your new configuration!"
