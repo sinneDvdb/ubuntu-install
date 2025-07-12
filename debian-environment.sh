@@ -14,11 +14,14 @@ echo "🔧 Installing Zsh..."
 sudo apt install -y zsh curl git
 
 echo "👤 Changing default shell to Zsh for user: $USER"
-# Use sudo chsh to avoid password prompt issues when running via curl
-sudo chsh -s "$(which zsh)" "$USER" || {
-    echo "⚠️  Failed to change shell automatically. You can change it manually later with:"
-    echo "   chsh -s \$(which zsh)"
-}
+# Use usermod instead of chsh - more reliable in automated scripts
+if sudo usermod -s "$(which zsh)" "$USER"; then
+    echo "✅ Successfully changed default shell to Zsh"
+else
+    echo "⚠️  Could not change shell automatically. You can change it manually after the script completes:"
+    echo "   sudo chsh -s \$(which zsh) $USER"
+    echo "   or edit /etc/passwd directly"
+fi
 
 # Install Oh My Zsh
 echo "✨ Installing Oh My Zsh..."
