@@ -69,24 +69,38 @@ if [[ "$NEED_UPDATE" == "true" ]]; then
     
     # Download and install latest Neovim AppImage
     echo "📥 Downloading Neovim AppImage..."
-    curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
-    chmod u+x nvim.appimage
-    
-    # Test the AppImage before installing
-    if ./nvim.appimage --version >/dev/null 2>&1; then
-        sudo mv nvim.appimage /usr/local/bin/nvim
-        echo "✅ Neovim AppImage installed successfully!"
-    else
-        echo "⚠️  AppImage failed, falling back to tarball installation..."
-        rm -f nvim.appimage
+    if curl -L -o nvim.appimage https://github.com/neovim/neovim/releases/latest/download/nvim.appimage; then
+        chmod u+x nvim.appimage
         
-        # Fallback: Download and extract tarball
-        NVIM_VERSION=$(curl -s https://api.github.com/repos/neovim/neovim/releases/latest | grep -oP '"tag_name": "v\K[^"]*')
-        curl -LO "https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz"
-        sudo tar -C /opt -xzf nvim-linux64.tar.gz
-        sudo ln -sf /opt/nvim-linux64/bin/nvim /usr/local/bin/nvim
-        rm nvim-linux64.tar.gz
-        echo "✅ Neovim tarball installed successfully!"
+        # Test the AppImage before installing
+        if ./nvim.appimage --version >/dev/null 2>&1; then
+            sudo mv nvim.appimage /usr/local/bin/nvim
+            echo "✅ Neovim AppImage installed successfully!"
+        else
+            echo "⚠️  AppImage failed, falling back to tarball installation..."
+            rm -f nvim.appimage
+            
+            # Fallback: Download and extract tarball
+            echo "📥 Downloading Neovim tarball..."
+            if curl -L -o nvim-linux64.tar.gz https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz; then
+                if tar -tzf nvim-linux64.tar.gz >/dev/null 2>&1; then
+                    sudo tar -C /opt -xzf nvim-linux64.tar.gz
+                    sudo ln -sf /opt/nvim-linux64/bin/nvim /usr/local/bin/nvim
+                    rm nvim-linux64.tar.gz
+                    echo "✅ Neovim tarball installed successfully!"
+                else
+                    echo "❌ Downloaded tarball is corrupted"
+                    rm -f nvim-linux64.tar.gz
+                    exit 1
+                fi
+            else
+                echo "❌ Failed to download Neovim tarball"
+                exit 1
+            fi
+        fi
+    else
+        echo "❌ Failed to download Neovim AppImage"
+        exit 1
     fi
     
     # Create symlinks for common commands
