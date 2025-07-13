@@ -121,30 +121,36 @@ fi
 echo
 echo "⚙️  Setting up Neovim configuration..."
 
+# Check if dotfiles repository already exists
+if [[ -d "$HOME/dotfiles" ]]; then
+    echo "📁 Dotfiles repository already exists, updating..."
+    cd "$HOME/dotfiles"
+    git pull
+else
+    echo "📥 Cloning dotfiles repository..."
+    git clone https://github.com/sinneDvdb/dotfiles.git "$HOME/dotfiles"
+fi
+
 # Check if Neovim config already exists
-if [[ -d "$HOME/.config/nvim" ]]; then
+if [[ -L "$HOME/.config/nvim" ]]; then
+    echo "✅ Neovim config symlink already exists"
+elif [[ -d "$HOME/.config/nvim" ]]; then
     echo "⚠️  Neovim config directory already exists. Backing up to ~/.config/nvim.backup"
     mv "$HOME/.config/nvim" "$HOME/.config/nvim.backup.$(date +%Y%m%d_%H%M%S)"
 fi
 
-# Clone the dotfiles repository
-echo "📥 Cloning Neovim configuration from dotfiles..."
-git clone https://github.com/sinneDvdb/dotfiles.git "$HOME/dotfiles-temp"
-
-# Copy the Neovim configuration
-if [[ -d "$HOME/dotfiles-temp/.config/nvim" ]]; then
-    echo "📁 Setting up Neovim configuration..."
+# Set up Neovim configuration symlink
+if [[ -d "$HOME/dotfiles/.config/nvim" ]]; then
+    echo "� Creating symlink for Neovim configuration..."
     mkdir -p "$HOME/.config"
-    cp -r "$HOME/dotfiles-temp/.config/nvim" "$HOME/.config/"
-    echo "✅ Neovim configuration installed successfully!"
+    ln -sf "$HOME/dotfiles/.config/nvim" "$HOME/.config/nvim"
+    echo "✅ Neovim configuration symlinked successfully!"
+    echo "💡 Your Neovim config is now linked to ~/dotfiles/.config/nvim"
+    echo "💡 Any changes you make can be committed and pushed from ~/dotfiles"
 else
     echo "⚠️  Neovim config not found in the expected location in dotfiles repo"
     echo "📂 Available directories in dotfiles:"
-    ls -la "$HOME/dotfiles-temp/"
+    ls -la "$HOME/dotfiles/"
 fi
-
-# Clean up temporary clone
-echo "🧹 Cleaning up temporary files..."
-rm -rf "$HOME/dotfiles-temp"
 
 echo "🎉 Ubuntu Environment Setup Complete!"
