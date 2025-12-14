@@ -14,7 +14,7 @@ else
     sudo apt install -y zsh curl git
 
     echo "👤 Changing default shell to Zsh for user: $USER"
-    chsh -s "$(which zsh)"
+    sudo usermod -s "$(command -v zsh)" "$USER"
 fi
 
 # Check if Oh My Zsh is already installed
