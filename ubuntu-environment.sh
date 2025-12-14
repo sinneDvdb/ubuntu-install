@@ -169,22 +169,4 @@ if [[ -d "$HOME/dotfiles" ]]; then
 else
     echo "⚠️ Dotfiles repo not found. Cannot link tmux config."
 fi
-
-echo
-echo "✨ Installing Powerlevel10k theme for Zsh..."
-
-# Check if Powerlevel10k is already installed
-if [[ -d "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k" ]]; then
-    echo "✅ Powerlevel10k is already installed"
-else
-    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git \
-        "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
-    echo "✅ Powerlevel10k installed successfully!"
-fi
-
-# Ensure ZSH_THEME="powerlevel10k/powerlevel10k" is set in .zshrc
-if ! grep -q 'ZSH_THEME="powerlevel10k/powerlevel10k"' "$HOME/.zshrc"; then
-    sed -i 's/^ZSH_THEME=.*/ZSH_THEME="powerlevel10k\/powerlevel10k"/' "$HOME/.zshrc"
-    echo "💡 Updated .zshrc to use Powerlevel10k theme"
-fi
 echo "🎉 Ubuntu Environment Setup Complete!"
